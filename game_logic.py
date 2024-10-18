@@ -6,10 +6,10 @@ from random import randint
 canvas = document.getElementById("gameCanvas")
 context = canvas.getContext("2d")
 
-# Audio setup
-background_music = window.new('Audio')('assets/background-music.wav')
-shoot_sound = window.new('Audio')('assets/shoot-sound.wav')
-explosion_sound = window.new('Audio')('assets/explosion-sound.wav')
+# Audio setup (remove 'new' keyword, just use window.Audio())
+background_music = window.Audio('assets/background-music.wav')
+shoot_sound = window.Audio('assets/shoot-sound.wav')
+explosion_sound = window.Audio('assets/explosion-sound.wav')
 
 # Load background image
 background_img = window.Image()
