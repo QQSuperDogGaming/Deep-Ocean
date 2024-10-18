@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deep Ocean</title>
-    <!-- Load PyScript -->
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <title>Space Invaders Web Game</title>
     <style>
-        body { 
-            background-color: black; 
-            color: white; 
+        body {
+            background-color: black;
+            color: white;
             text-align: center;
         }
-        canvas { 
-            display: block; 
-            margin: 0 auto; 
+
+        canvas {
+            display: block;
+            margin: 0 auto;
             background-color: #000;
         }
+
         #mainMenu, #leaderboard, #gameOverScreen {
             display: none;
         }
+
         button {
             padding: 10px 20px;
             margin: 10px;
@@ -29,7 +29,7 @@
     </style>
 </head>
 <body>
-    <h1 id="gameTitle">Deep Ocean</h1>
+    <h1 id="gameTitle">Space Invaders - JavaScript Edition</h1>
 
     <!-- Main Menu -->
     <div id="mainMenu">
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Game Canvas -->
-    <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
     <!-- Game Over Screen -->
     <div id="gameOverScreen">
@@ -55,10 +55,239 @@
         <button id="backToMenu">Back to Menu</button>
     </div>
 
-    <!-- Load external Python script -->
-    <py-script src="game_logic.py"></py-script>
+    <script>
+        // Set up the game canvas
+        const canvas = document.getElementById("gameCanvas");
+        const context = canvas.getContext("2d");
+
+        // Audio setup
+        const backgroundMusic = new Audio('assets/background-music.wav');
+        const shootSound = new Audio('assets/shoot-sound.wav');
+        const explosionSound = new Audio('assets/explosion-sound.wav');
+
+        // Load background image
+        const backgroundImg = new Image();
+        backgroundImg.src = 'assets/background.png';
+
+        // Background scrolling speed and position
+        let backgroundY1 = 0;
+        let backgroundY2 = -canvas.height;
+        const backgroundSpeed = 2;
+
+        // Player setup
+        const playerImg = new Image();
+        playerImg.src = 'assets/player.png';
+        let playerX = 370;
+        let playerY = 500;
+        const playerWidth = 64;
+        const playerHeight = 64;
+        const playerSpeed = 5;
+        let playerHealth = 100;
+        const bulletWidth = 5;
+        const bulletHeight = 20;
+
+        // Enemy setup
+        const enemyImg = new Image();
+        enemyImg.src = 'assets/enemy.png';
+        const enemyWidth = 64;
+        const enemyHeight = 64;
+        const numOfEnemies = 6;
+        let enemies = Array.from({length: numOfEnemies}, () => ({
+            x: Math.random() * (canvas.width - enemyWidth),
+            y: Math.random() * 150 + 50
+        }));
+        const enemySpeed = 2;
+
+        // Bullet setup
+        let bullets = [];
+        const bulletSpeed = 10;
+
+        // Score and leaderboard
+        let score = 0;
+        let leaderboard = [];
+
+        // Track key states
+        const keys = {
+            ArrowLeft: false,
+            ArrowRight: false,
+            Space: false
+        };
+
+        // Health Bar Drawing
+        function drawHealthBar() {
+            context.fillStyle = "red";
+            context.fillRect(10, 40, playerHealth * 2, 20);
+            context.strokeStyle = "white";
+            context.strokeRect(10, 40, 200, 20);
+        }
+
+        function drawPlayer() {
+            context.drawImage(playerImg, playerX, playerY, playerWidth, playerHeight);
+        }
+
+        function drawEnemy(x, y) {
+            context.drawImage(enemyImg, x, y, enemyWidth, enemyHeight);
+        }
+
+        function drawBullet(bullet) {
+            context.fillStyle = "yellow";
+            context.fillRect(bullet.x, bullet.y, bulletWidth, bulletHeight);
+        }
+
+        function moveBullets() {
+            bullets = bullets.filter(bullet => bullet.y > 0);
+            bullets.forEach(bullet => bullet.y -= bulletSpeed);
+        }
+
+        function isCollision(enemy, bullet) {
+            const distance = Math.sqrt((enemy.x - bullet.x) ** 2 + (enemy.y - bullet.y) ** 2);
+            return distance < 40;
+        }
+
+        function handleCollisions() {
+            enemies = enemies.filter(enemy => {
+                return !bullets.some(bullet => {
+                    if (isCollision(enemy, bullet)) {
+                        bullets = bullets.filter(b => b !== bullet);
+                        explosionSound.play();
+                        score += 1;
+                        return true;
+                    }
+                    return false;
+                });
+            });
+        }
+
+        function gameOver() {
+            return playerHealth <= 0;
+        }
+
+        function scrollBackground() {
+            backgroundY1 += backgroundSpeed;
+            backgroundY2 += backgroundSpeed;
+
+            if (backgroundY1 >= canvas.height) backgroundY1 = -canvas.height;
+            if (backgroundY2 >= canvas.height) backgroundY2 = -canvas.height;
+
+            // Draw two instances of the background image to create a scrolling effect
+            context.drawImage(backgroundImg, 0, backgroundY1, canvas.width, canvas.height);
+            context.drawImage(backgroundImg, 0, backgroundY2, canvas.width, canvas.height);
+        }
+
+        function gameLoop() {
+            if (gameOver()) {
+                saveScore(score);
+                endGame();
+                return;
+            }
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Scroll and draw background
+            scrollBackground();
+
+            // Move player
+            if (keys.ArrowLeft) playerX = Math.max(0, playerX - playerSpeed);
+            if (keys.ArrowRight) playerX = Math.min(canvas.width - playerWidth, playerX + playerSpeed);
+
+            // Draw player and health bar
+            drawPlayer();
+            drawHealthBar();
+
+            // Move and draw bullets
+            moveBullets();
+            bullets.forEach(drawBullet);
+
+            // Move and draw enemies
+            enemies.forEach(enemy => {
+                enemy.x += enemySpeed;
+                if (enemy.x >= canvas.width - enemyWidth || enemy.x <= 0) enemySpeed = -enemySpeed;
+                drawEnemy(enemy.x, enemy.y);
+            });
+
+            // Handle bullet-enemy collisions
+            handleCollisions();
+
+            // Display score
+            context.fillStyle = "white";
+            context.font = "20px Arial";
+            context.fillText(`Score: ${score}`, 10, 20);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function fireBullet() {
+            bullets.push({x: playerX + playerWidth / 2 - bulletWidth / 2, y: playerY});
+            shootSound.play();
+        }
+
+        window.addEventListener("keydown", event => {
+            keys[event.key] = true;
+            if (event.key === " ") fireBullet();
+        });
+
+        window.addEventListener("keyup", event => {
+            keys[event.key] = false;
+        });
+
+        function saveScore(score) {
+            leaderboard.push(score);
+            leaderboard.sort((a, b) => b - a);
+            leaderboard = leaderboard.slice(0, 5);  // Top 5 scores
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+        }
+
+        function showLeaderboard() {
+            const leaderboardList = document.getElementById("leaderboardList");
+            leaderboardList.innerHTML = leaderboard.map(score => `<li>${score}</li>`).join("");
+        }
+
+        function endGame() {
+            canvas.style.display = "none";
+            document.getElementById("gameOverScreen").style.display = "block";
+            document.getElementById("finalScore").innerText = score;
+        }
+
+        // Event listeners for menu buttons
+        document.getElementById("startGame").addEventListener("click", () => {
+            document.getElementById("mainMenu").style.display = "none";
+            canvas.style.display = "block";
+            backgroundMusic.play();
+            gameLoop();
+        });
+
+        document.getElementById("viewLeaderboard").addEventListener("click", () => {
+            document.getElementById("mainMenu").style.display = "none";
+            document.getElementById("leaderboard").style.display = "block";
+            showLeaderboard();
+        });
+
+        document.getElementById("restartGame").addEventListener("click", () => {
+            playerHealth = 100;
+            score = 0;
+            bullets = [];
+            enemies = Array.from({length: numOfEnemies}, () => ({
+                x: Math.random() * (canvas.width - enemyWidth),
+                y: Math.random() * 150 + 50
+            }));
+            document.getElementById("gameOverScreen").style.display = "none";
+            canvas.style.display = "block";
+            gameLoop();
+        });
+
+        document.getElementById("goToMenu").addEventListener("click", () => {
+            document.getElementById("gameOverScreen").style.display = "none";
+            document.getElementById("mainMenu").style.display = "block";
+        });
+
+        document.getElementById("backToMenu").addEventListener("click", () => {
+            document.getElementById("leaderboard").style.display = "none";
+            document.getElementById("mainMenu").style.display = "block";
+        });
+
+        // Load leaderboard from localStorage
+        leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    </script>
 </body>
 </html>
-
-
 
