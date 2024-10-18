@@ -1,23 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ocean Exploration Game</title>
-  <style>
-    canvas {
-      background: lightblue;
-      display: block;
-      margin: 0 auto;
-    }
-    body {
-      text-align: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Ocean</title>
+    <!-- Load PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body { 
+            background-color: black; 
+            color: white; 
+            text-align: center;
+        }
+        canvas { 
+            display: block; 
+            margin: 0 auto; 
+            background-color: #000;
+        }
+        #mainMenu, #leaderboard, #gameOverScreen {
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Explore the Ocean</h1>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <script src="game.js"></script>
+    <h1 id="gameTitle">Deep Ocean</h1>
+
+    <!-- Main Menu -->
+    <div id="mainMenu">
+        <button id="startGame">Start Game</button>
+        <button id="viewLeaderboard">View Leaderboard</button>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen">
+        <h2>Game Over</h2>
+        <p>Your Score: <span id="finalScore"></span></p>
+        <button id="restartGame">Restart Game</button>
+        <button id="goToMenu">Main Menu</button>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboard">
+        <h2>Leaderboard</h2>
+        <ul id="leaderboardList"></ul>
+        <button id="backToMenu">Back to Menu</button>
+    </div>
+
+    <!-- Load external Python script -->
+    <py-script src="game_logic.py"></py-script>
 </body>
 </html>
+
+
+
