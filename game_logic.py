@@ -6,13 +6,13 @@ from random import randint
 canvas = document.getElementById("gameCanvas")
 context = canvas.getContext("2d")
 
-# Audio setup (just use window.Audio())
-background_music = window.Audio.new('assets/background-music.wav')
-shoot_sound = window.Audio.new('assets/shoot-sound.wav')
-explosion_sound = window.Audio.new('assets/explosion-sound.wav')
+# Audio setup (use Audio() directly without 'new')
+background_music = window.Audio('assets/background-music.wav')
+shoot_sound = window.Audio('assets/shoot-sound.wav')
+explosion_sound = window.Audio('assets/explosion-sound.wav')
 
 # Load background image
-background_img = window.Image.new()
+background_img = window.Image()
 background_img.src = 'assets/background.png'
 
 # Background scrolling speed and position
@@ -21,7 +21,7 @@ background_y2 = -canvas.height
 background_speed = 2
 
 # Player setup
-player_img = window.Image.new()
+player_img = window.Image()
 player_img.src = 'assets/player.png'
 player_x = 370
 player_y = 500
@@ -33,7 +33,7 @@ bullet_width = 5
 bullet_height = 20
 
 # Enemy setup
-enemy_img = window.Image.new()
+enemy_img = window.Image()
 enemy_img.src = 'assets/enemy.png'
 enemy_width = 64
 enemy_height = 64
